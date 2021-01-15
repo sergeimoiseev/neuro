@@ -18,7 +18,7 @@ class LogisticRegression:
         self.beta = None
         self.fit_intercept = fit_intercept
 
-    def fit(self, X, y, lr=0.01, tol=1e-7, max_iter=1e7, method = 'sgd', hist_w = 0.9, ):
+    def fit(self, X, y, lr=0.01, tol=1e-7, max_iter=1e7, method = 'sgd', hist_w = 0.9, batch_size = 10):
         """
         Fit the regression coefficients via gradient descent on the negative
         log likelihood.
@@ -37,11 +37,14 @@ class LogisticRegression:
         method : string
             The training method. Default is stochastic gradient descent - 'sgd'. 
             Formulas from https://remykarem.github.io/blog/gradient-descent-optimisers.html
+            'sgd' for stochastic gradient descent
             'momentum' for Momentum,
             'nag' for Nesterov accelerated gradient,
             'rmsprop' for RMSProp.
         hist_w : float
             History weight for time-step methods.
+        batch_size: int
+            Size of subset of train data for 'sgd' method
         """
         # convert X to a design matrix if we're fitting an intercept
         if self.fit_intercept:
@@ -59,15 +62,29 @@ class LogisticRegression:
 
         N, M = X.shape
 
+        if method == 'sgd':
+            for _ in range(int(max_iter)):
+                rand_idx = np.random.randint(0,N)
+                X_ = X[rand_idx:rand_idx+batch_size,:]
+                y_ = y[rand_idx:rand_idx+batch_size]
+                y_pred = sigmoid(np.dot(X_, self.beta))
+                loss = -np.log(y_pred[y_ == 1]).sum() - np.log(1 - y_pred[y_ == 0]).sum()
+                if np.abs(l_prev - loss) < tol:
+                    return
+                l_prev = loss
+                grad = -(np.dot(y_ - y_pred, X_)) / N
+                self.beta -= lr * grad 
+        # TODO: ИМХО есть ошибка в реализации numpy_ml - во всех методах используется простой градиентный спуск, не sdg
+        # и нужно по-хорошему перевести методы momentum, nag, rmsprop на основу sdg
         for _ in range(int(max_iter)):
             y_pred = sigmoid(np.dot(X, self.beta))
             loss = -np.log(y_pred[y == 1]).sum() - np.log(1 - y_pred[y == 0]).sum()
-            if l_prev - loss < tol:
+            if np.abs(l_prev - loss) < tol:
                 return
             l_prev = loss
             grad = -(np.dot(y - y_pred, X)) / N
-            if method=='sgd':
-                self.beta -= lr * grad
+            if method=='gd':
+                self.beta -= lr * grad 
             elif method=='momentum':
                 m_prev = hist_w * m_prev + (1 - hist_w) * grad
                 self.beta -= lr * m_prev
@@ -80,6 +97,8 @@ class LogisticRegression:
             elif method=='rmsprop':
                 v_prev = hist_w * v_prev + (1 - hist_w) * np.square(grad)
                 self.beta -= lr * grad / np.sqrt(v_prev + eps)
+            else:
+                pass
 
     # def update(self, X, y, y_pred):
     #     return
