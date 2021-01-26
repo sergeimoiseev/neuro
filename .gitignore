@@ -1,3 +1,6 @@
 /dvp10_01
 *.csv
 *.pyc
+!/dvp-10-hw-03/athletes.csv
+!/dvp-10-hw-03/*.csv
+dvp-10-hw-05/Основная_практика2.ipynb
