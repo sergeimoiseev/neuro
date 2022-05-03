@@ -5,7 +5,7 @@
 ## Determine Data Mining Goals/ Определение целей аналитики
 ## ProduktProject Plan/ Подготовка плана проекта
 
-# DataUnderstanding/ Анализ данных
+# Data Understanding/ Анализ данных
 
 ## Collect Initial Data/ Сбор данных 
 ## Describe Data/ Описание данных 
